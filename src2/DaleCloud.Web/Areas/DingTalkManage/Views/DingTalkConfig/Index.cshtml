@@ -1,0 +1,118 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Index.cshtml";
+}
+<script>
+    $(function () {
+        gridList();
+    })
+    function gridList() {
+        $('#dg').datagrid({
+            url: "/DingTalkManage/DingTalkConfig/GetGridJson",
+            toolbar: '#toolbar',
+            autoRowHeight: false,
+            nowrap: true,
+            singleSelect: true,
+            method: 'get',
+            columns: [[
+                { field: 'uuId', hidden: true },
+                { field: 'AppName', title: '名称', width: 240, align: 'center' },
+                { field: 'CorpId', title: 'CorpId', width: 120, align: 'center' },
+                { field: 'ApiUrl', title: '接口地址', width: 180, align: 'center' },
+                {
+                    field: 'Status', title: '状态', width: 60, align: 'right',
+                    formatter: function (value, row, index) {
+                        return value == 1 ? "有效" : "失效";
+                    }
+                },
+                { field: 'CreateTime', title: '创建时间', width: 120, align: 'right' }
+            ]]
+        });
+
+        $("#btn_search").click(function () {
+            var queryJson = {
+                keyword: $("#txt_keyword").val()
+            }
+            $('#dg').datagrid('load',queryJson);
+        });
+    }
+    function btn_add() {
+        $.modalOpen({
+            id: "Form",
+            title: "新增账号",
+            url: "/DingTalkManage/DingTalkConfig/Form",
+            width: "700px",
+            height: "680px",
+            callBack: function (iframeId) {
+                top.frames[iframeId].submitForm();
+            }
+        });
+    }
+    function btn_edit() {
+        var selected = $('#dg').datagrid('getSelected');
+        if (selected != null) {
+            $.modalOpen({
+                id: "Form",
+                title: "修改账号",
+                url: "/DingTalkManage/DingTalkConfig/Form?keyValue=" + selected.uuId,
+                width: "700px",
+                height: "680px",
+                callBack: function (iframeId) {
+                    top.frames[iframeId].submitForm();
+                }
+            });
+        }
+        else {
+            $.modalMsg("未选中数据", "warning");
+        }
+    }
+    function btn_delete() {
+        var selected = $('#dg').datagrid('getSelected');
+        if (selected != null) {
+            $.deleteForm({
+                url: "/DingTalkManage/DingTalkConfig/DeleteForm",
+                param: { keyValue: selected.uuId },
+                success: function () {
+                    $('#dg').datagrid('reload');
+                }
+            });
+        }
+        else {
+            $.modalMsg("未选中数据", "warning");
+        }
+    }
+    function btn_details() {
+        var selected = $('#dg').datagrid('getSelected');
+        if (selected != null) {
+            $.modalOpen({
+                id: "Details",
+                title: "查看信息",
+                url: "/DingTalkManage/DingTalkConfig/Details?keyValue=" + selected.uuId,
+                width: "700px",
+                height: "680px",
+                btn: null,
+            });
+        }
+        else {
+            $.modalMsg("未选中数据", "warning");
+        }
+    }
+</script>
+
+<div class="gridPanel" style="height:100%;">
+    <div id="toolbar" style="padding:2px 5px;">
+        <div class="dcui-btn-area">
+            <a href="#" id="NF-add" authorize="yes" class="dcui-btn dcui-btn-green" iconCls="icon-add" plain="true" onclick="btn_add()"><i class="fa fa-plus"></i>新建账号</a>
+            <a href="#" id="NF-delete" authorize="yes" class="dcui-btn dcui-btn-red" iconCls="icon-remove" plain="true" onclick="btn_delete()"><i class="fa fa-trash"></i>删除账号</a>
+            <a href="#" id="NF-edit" authorize="yes" class="dcui-btn dcui-btn-blue" iconCls="icon-edit" plain="true" onclick="btn_edit()"><i class="fa fa-pencil"></i>修改账号</a>
+            <a href="#" id="NF-details" authorize="yes" class="dcui-btn dcui-btn-purple" iconCls="icon-man" plain="true" onclick="btn_details()"><i class="fa fa-eye"></i>查看账号</a>
+        </div>
+        <script>$('#toolbar').authorizeButton()</script>
+        <div class="dcui-search-area">
+            关键字: <input class="easyui-textbox" style="width:110px" id="txt_keyword" placeholder="请输入要查询关键字">
+            <a href="#" class="easyui-linkbutton" iconCls="icon-search" id="btn_search">查询</a>
+        </div>
+    </div>
+
+    <table id="dg" class="easyui-datagrid" style="width:100%;min-height:600px;height:100%;"></table>
+</div>
